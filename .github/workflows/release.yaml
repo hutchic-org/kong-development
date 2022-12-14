@@ -24,21 +24,20 @@ jobs:
       with:
         submodules: true
         token: ${{ secrets.GH_TOKEN }}
-        
+
     - name: Release
       id: release
       uses: ahmadnassri/action-semantic-release@v2.1.10
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  artifacts:
-    needs: release
-    name: Create Release Artifacts
+  build-base-artifacts:
+    runs-on: ubuntu-latest
+    name: Create OSType Artifacts
     strategy:
       matrix:
-        architecture: [aarch64, x86_64]
+        architecture: [x86_64, aarch64]
         ostype: [linux-gnu, linux-musl]
-    runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -61,69 +60,85 @@ jobs:
       run: |
         echo "ARCHITECTURE=${{ matrix.architecture }}" >> $GITHUB_ENV
         echo "OSTYPE=${{ matrix.ostype }}" >> $GITHUB_ENV
-        echo "REGISTRY=ghcr.io"
 
-    - name: Build, and Package
-      run: make build/package
-
-    - name: Docker meta
-      if: ${{ needs.release.outputs.published == 'true' }}
-      id: meta
-      uses: docker/metadata-action@v4
-      with:
-        images: ghcr.io/hutchic-org/kong-development
-        sep-tags: ' '
-        flavor: |
-          suffix=-${{ matrix.architecture }}-${{ matrix.ostype }}
-        tags: |
-          type=sha
-          type=ref,event=branch
-          type=semver,pattern={{version}},value=${{ needs.release.outputs.release-git-tag }}
-          type=semver,pattern={{major}},value=${{ needs.release.outputs.release-git-tag }}
-
-    - name: Retag and Push
-      if: ${{ needs.release.outputs.published == 'true' }}
+    - name: Build and Archive
       run: |
-        for tag in ${{ steps.meta.outputs.tags }}; do \
-          docker tag ghcr.io/kong-development:build-$ARCHITECTURE-$OSTYPE $tag && \
-          docker push $tag; \
-        done
+        make build
+        tar -czvf build.tar.gz build
 
-    - name: Archive the package
-      if: ${{ needs.release.outputs.published == 'true' }}
-      run: |
-        tar -C package -czvf ${{ matrix.architecture }}-${{ matrix.ostype }}.tar.gz .
-
-    - name: Add Release Artifact to the Github Release
-      if: ${{ needs.release.outputs.published == 'true' }}
-      uses: softprops/action-gh-release@v1
+    - name: Store the result
+      uses: actions/upload-artifact@v3
       with:
-        tag_name: ${{ needs.release.outputs.release-git-tag }}
-        files: ${{ matrix.architecture }}-${{ matrix.ostype }}.tar.gz
+        name: ${{ matrix.architecture }}-${{ matrix.ostype }}
+        path: build.tar.gz
+        retention-days: 1
 
-  multi-arch:
-    needs: [release, artifacts]
-    name: Create Release Artifacts
-    if: ${{ needs.release.outputs.published == 'true' }}
+
+  build-packages:
+    needs: [release, build-base-artifacts]
+    name: Create Packaged Artifacts
     strategy:
       matrix:
-        ostype: [linux-gnu, linux-musl]
-        
+        architecture: [{cpu: x86_64, docker: amd64}, {cpu: aarch64, docker: arm64}]
+        os: [{os: ubuntu, version: rolling, ostype: linux-gnu}, {os: ubuntu, version: 16.04, ostype: linux-gnu}, {os: debian, version: testing, ostype: linux-gnu},
+          {os: debian, version: 10, ostype: linux-gnu}, {os: amazonlinux, version: 2, ostype: linux-gnu}, {os: amazonlinux, version: 2022, ostype: linux-gnu},
+          {os: rhel, version: 8, ostype: linux-gnu}, {os: alpine, version: 3, ostype: linux-musl}]
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        submodules: true
+        token: ${{ secrets.GH_TOKEN }}
+
+    - name: Download the build artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: ${{ matrix.architecture.cpu }}-${{ matrix.os.ostype }}
+
+    - name: Extract the build artifact
+      run: tar -xzvf build.tar.gz
+
     - name: Log in to the Container registry
-      if: ${{ needs.release.outputs.published == 'true' }}
       uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Combine per architecture images into a single multi-arch manifest
+    - uses: docker/setup-qemu-action@v2
+
+    - uses: docker/setup-buildx-action@v2
+
+    - name: Set environment variables
       run: |
-        docker pull ghcr.io/hutchic-org/kong-development:${{ needs.release.outputs.release-git-tag }}-aarch64-${{ matrix.ostype }}
-        docker pull ghcr.io/hutchic-org/kong-development:${{ needs.release.outputs.release-git-tag }}-x86_64-${{ matrix.ostype }}
-        docker manifest create ghcr.io/hutchic-org/kong-development:${{ needs.release.outputs.release-git-tag }}-${{ matrix.ostype }} \
-          ghcr.io/hutchic-org/kong-development:${{ needs.release.outputs.release-git-tag }}-aarch64-${{ matrix.ostype }} \
-          ghcr.io/hutchic-org/kong-development:${{ needs.release.outputs.release-git-tag }}-x86_64-${{ matrix.ostype }}
-        docker manifest push ghcr.io/hutchic-org/kong-development:${{ needs.release.outputs.release-git-tag }}-${{ matrix.ostype }}
+        echo "ARCHITECTURE=${{ matrix.architecture.cpu }}" >> $GITHUB_ENV
+        echo "REGISTRY=ghcr.io" >> $GITHUB_ENV
+        echo "OSTYPE=${{ matrix.os.ostype }}" >> $GITHUB_ENV
+        echo "OPERATING_SYSTEM=${{ matrix.os.os }}" >> $GITHUB_ENV
+        echo "OPERATING_SYSTEM_VERSION=${{ matrix.os.version }}" >> $GITHUB_ENV
+
+    - name: Build, and Package
+      run: make package
+
+    - name: Store the result
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.architecture.docker }}-${{ matrix.os.os }}-${{ matrix.os.version }}
+        path: package/*
+        retention-days: 1
+
+    - name: Add Release Artifact to the Github Release
+      if: ${{ needs.release.outputs.published == 'true' }}
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ needs.release.outputs.release-git-tag }}
+        files: package/*
+
+  packages-done:
+    needs: [release, build-packages]
+    name: Packages Done
+    if: needs.build-packages.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+    - run: echo 'done'
