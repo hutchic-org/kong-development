@@ -11,7 +11,8 @@ OPERATING_SYSTEM_VERSION ?= 22.04
 
 clean:
 	-rm -rf package
-	-docker rmi $(DOCKER_NAME)
+	-docker rmi $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_NAME):build-$(ARCHITECTURE)-$(OSTYPE)
+	-docker rmi $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_NAME):fpm-$(ARCHITECTURE)-$(OSTYPE)
 
 clean/submodules:
 	-git reset --hard
@@ -21,6 +22,7 @@ clean/submodules:
 docker:
 	-git submodule update --init --recursive
 	-git submodule status
+	docker inspect --format='{{.Config.Image}}' $(DOCKER_NAME) || \
 	docker buildx build \
 		--build-arg DOCKER_REGISTRY=$(DOCKER_REGISTRY) \
 		--build-arg DOCKER_IMAGE_NAME=$(DOCKER_IMAGE_NAME) \
@@ -33,10 +35,7 @@ docker:
 		-t $(DOCKER_NAME) \
 		$(DOCKER_RESULT) .
 
-build/docker:
-	docker inspect --format='{{.Config.Image}}' $(DOCKER_NAME) || \
+package:
 	$(MAKE) DOCKER_TARGET=build docker
-
-build/package: build/docker
 	$(MAKE) DOCKER_TARGET=fpm docker
 	$(MAKE) DOCKER_TARGET=package DOCKER_RESULT="-o package" docker

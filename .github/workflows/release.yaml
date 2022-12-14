@@ -31,13 +31,13 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  artifacts:
+  artifacts-linux-gnu:
     needs: release
     name: Create Release Artifacts
     strategy:
       matrix:
         architecture: [aarch64, x86_64]
-        ostype: [linux-gnu, linux-musl]
+        os: [ {os: ubuntu, version: 22.04, ostype: linux-gnu} ]
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -60,11 +60,13 @@ jobs:
     - name: Set environment variables
       run: |
         echo "ARCHITECTURE=${{ matrix.architecture }}" >> $GITHUB_ENV
-        echo "OSTYPE=${{ matrix.ostype }}" >> $GITHUB_ENV
-        echo "REGISTRY=ghcr.io"
+        echo "REGISTRY=ghcr.io" >> $GITHUB_ENV
+        echo "OSTYPE=${{ matrix.os.ostype }}" >> $GITHUB_ENV
+        echo "OPERATING_SYSTEM=${{ matrix.os.os }}" >> $GITHUB_ENV
+        echo "OPERATING_SYSTEM_VERSION=${{ matrix.os.version }}" >> $GITHUB_ENV
 
     - name: Build, and Package
-      run: make build/package
+      run: make package
 
     - name: Docker meta
       if: ${{ needs.release.outputs.published == 'true' }}

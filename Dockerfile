@@ -35,10 +35,14 @@ RUN /test/*/test.sh && \
 COPY test.sh /test/kong-development/test.sh
 
 
+# Intermediary image to cache the result and avoid a rebuild
+FROM ghcr.io/kong-development:build-$ARCHITECTURE-$OSTYPE as build-result
+
+
 # Use FPM to change the contents of /tmp/build into a deb / rpm / apk.tar.gz
 FROM kong/fpm:0.5.1 as fpm
 
-COPY --from=build /tmp/build /tmp/build
+COPY --from=build-result /tmp/build /tmp/build
 COPY /fpm /fpm
 
 # Keep sync'd with the fpm/package.sh variables
