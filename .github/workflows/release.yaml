@@ -24,7 +24,7 @@ jobs:
       with:
         submodules: true
         token: ${{ secrets.GH_TOKEN }}
-        
+
     - name: Release
       id: release
       uses: ahmadnassri/action-semantic-release@v2.1.10
@@ -37,7 +37,7 @@ jobs:
     strategy:
       matrix:
         architecture: [aarch64, x86_64]
-        os: [ {os: ubuntu, version: 22.04, ostype: linux-gnu} ]
+        os: [{os: ubuntu, version: 22.04, ostype: linux-gnu}]
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -110,7 +110,7 @@ jobs:
     strategy:
       matrix:
         ostype: [linux-gnu, linux-musl]
-        
+
     runs-on: ubuntu-latest
     steps:
     - name: Log in to the Container registry
