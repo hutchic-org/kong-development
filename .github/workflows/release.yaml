@@ -79,7 +79,7 @@ jobs:
     name: Create Packaged Artifacts
     strategy:
       matrix:
-        architecture: [x86_64]
+        architecture: [{cpu: x86_64, docker: amd64}]
         os: [{os: ubuntu, version: rolling, ostype: linux-gnu}, {os: ubuntu, version: 16.04, ostype: linux-gnu}, {os: debian, version: testing, ostype: linux-gnu},
           {os: debian, version: 10, ostype: linux-gnu}, {os: amazonlinux, version: 2, ostype: linux-gnu}, {os: amazonlinux, version: 2022, ostype: linux-gnu},
           {os: rhel, version: 8, ostype: linux-gnu}, {os: alpine, version: 3, ostype: linux-musl}]
@@ -94,7 +94,7 @@ jobs:
     - name: Download the build artifact
       uses: actions/download-artifact@v3
       with:
-        name: ${{ matrix.architecture }}-${{ matrix.os.ostype }}
+        name: ${{ matrix.architecture.cpu }}-${{ matrix.os.ostype }}
 
     - name: Extract the build artifact
       run: tar -xzvf build.tar.gz
@@ -112,7 +112,7 @@ jobs:
 
     - name: Set environment variables
       run: |
-        echo "ARCHITECTURE=${{ matrix.architecture }}" >> $GITHUB_ENV
+        echo "ARCHITECTURE=${{ matrix.architecture.cpu }}" >> $GITHUB_ENV
         echo "REGISTRY=ghcr.io" >> $GITHUB_ENV
         echo "OSTYPE=${{ matrix.os.ostype }}" >> $GITHUB_ENV
         echo "OPERATING_SYSTEM=${{ matrix.os.os }}" >> $GITHUB_ENV
@@ -124,7 +124,7 @@ jobs:
     - name: Store the result
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ matrix.architecture }}-${{ matrix.os.os }}--${{ matrix.os.version }}
+        name: ${{ matrix.architecture.docker }}-${{ matrix.os.os }}-${{ matrix.os.version }}
         path: package/*
         retention-days: 1
 
