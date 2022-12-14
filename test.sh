@@ -8,7 +8,17 @@ if [ -n "${DEBUG:-}" ]; then
 fi
 
 function test() {
-    ls -lah /tmp/build/out
+    echo '--- testing kong ---'
+    cp -R /tmp/build/* /
+    mv /tmp/build /tmp/buffer # Check we didn't link dependencies to `/tmp/build/...`
+
+    kong version
+    kong roar
+    #KONG_DATABASE=off kong start
+    #curl localhost:8001
+
+    mv /tmp/buffer /tmp/build
+    echo '--- tested kong ---'
 }
 
 test
