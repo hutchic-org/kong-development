@@ -31,8 +31,49 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  artifacts-linux-gnu:
-    needs: release
+  build-base-artifacts:
+    runs-on: ubuntu-latest
+    name: Create OSType Artifacts
+    strategy:
+      matrix:
+        architecture: [aarch64, x86_64]
+        ostype: [linux-gnu, linux-musl]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        submodules: true
+        token: ${{ secrets.GH_TOKEN }}
+
+    - name: Log in to the Container registry
+      uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - uses: docker/setup-qemu-action@v2
+
+    - uses: docker/setup-buildx-action@v2
+
+    - name: Set environment variables
+      run: |
+        echo "ARCHITECTURE=${{ matrix.architecture }}" >> $GITHUB_ENV
+        echo "OSTYPE=${{ matrix.ostype }}" >> $GITHUB_ENV
+
+    - name: Build
+      run: make build-result
+
+    - name: Store the result
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.architecture }}-${{ matrix.ostype }}
+        path: build-result/
+        retention-days: 1
+
+
+  build-packages:
+    needs: [release, build-base-artifacts]
     name: Create Release Artifacts
     strategy:
       matrix:
@@ -47,6 +88,11 @@ jobs:
       with:
         submodules: true
         token: ${{ secrets.GH_TOKEN }}
+
+    - name: Download the build-result artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: ${{ matrix.architecture }}-${{ matrix.ostype }}
 
     - name: Log in to the Container registry
       uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
@@ -70,37 +116,9 @@ jobs:
     - name: Build, and Package
       run: make package
 
-    - name: Docker meta
-      if: ${{ needs.release.outputs.published == 'true' }}
-      id: meta
-      uses: docker/metadata-action@v4
-      with:
-        images: ghcr.io/hutchic-org/kong-development
-        sep-tags: ' '
-        flavor: |
-          suffix=-${{ matrix.architecture }}-${{ matrix.ostype }}
-        tags: |
-          type=sha
-          type=ref,event=branch
-          type=semver,pattern={{version}},value=${{ needs.release.outputs.release-git-tag }}
-          type=semver,pattern={{major}},value=${{ needs.release.outputs.release-git-tag }}
-
-    - name: Retag and Push
-      if: ${{ needs.release.outputs.published == 'true' }}
-      run: |
-        for tag in ${{ steps.meta.outputs.tags }}; do \
-          docker tag ghcr.io/kong-development:build-$ARCHITECTURE-$OSTYPE $tag && \
-          docker push $tag; \
-        done
-
-    - name: Archive the package
-      if: ${{ needs.release.outputs.published == 'true' }}
-      run: |
-        tar -C package -czvf ${{ matrix.architecture }}-${{ matrix.ostype }}.tar.gz .
-
     - name: Add Release Artifact to the Github Release
       if: ${{ needs.release.outputs.published == 'true' }}
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ needs.release.outputs.release-git-tag }}
-        files: ${{ matrix.architecture }}-${{ matrix.ostype }}.tar.gz
+        files: package/*

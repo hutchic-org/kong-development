@@ -35,10 +35,15 @@ RUN /test/*/test.sh && \
 COPY test.sh /test/kong-development/test.sh
 
 
+# Copy the build result to scratch so we can export the result
+FROM scratch as build-result
+COPY --from=build /tmp/build /
+
+
 # Use FPM to change the contents of /tmp/build into a deb / rpm / apk.tar.gz
 FROM kong/fpm:0.5.1 as fpm
 
-COPY --from=build /tmp/build /tmp/build
+COPY /build-result /tmp/build
 COPY /fpm /fpm
 
 # Keep sync'd with the fpm/package.sh variables
