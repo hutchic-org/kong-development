@@ -20,6 +20,9 @@ function test() {
     curl localhost:8001
     kong stop
 
+    # Sleep long enough that Kong isn't running
+    sleep 10
+
     mv /tmp/buffer /tmp/build
     echo '--- tested kong ---'
 }
