@@ -36,7 +36,7 @@ jobs:
     name: Create OSType Artifacts
     strategy:
       matrix:
-        architecture: [aarch64, x86_64]
+        architecture: [x86_64]
         ostype: [linux-gnu, linux-musl]
     steps:
     - name: Checkout
@@ -77,7 +77,7 @@ jobs:
     name: Create Release Artifacts
     strategy:
       matrix:
-        architecture: [aarch64, x86_64]
+        architecture: [x86_64]
         os: [{os: ubuntu, version: rolling, ostype: linux-gnu}, {os: ubuntu, version: 16.04, ostype: linux-gnu}, {os: debian, version: testing, ostype: linux-gnu},
           {os: debian, version: 10, ostype: linux-gnu}, {os: amazonlinux, version: 2, ostype: linux-gnu}, {os: amazonlinux, version: 2022, ostype: linux-gnu},
           {os: rhel, version: 8, ostype: linux-gnu}, {os: alpine, version: 3, ostype: linux-musl}]
