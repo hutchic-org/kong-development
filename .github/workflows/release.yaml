@@ -61,14 +61,16 @@ jobs:
         echo "ARCHITECTURE=${{ matrix.architecture }}" >> $GITHUB_ENV
         echo "OSTYPE=${{ matrix.ostype }}" >> $GITHUB_ENV
 
-    - name: Build
-      run: make build
+    - name: Build and Archive
+      run: |
+        make build
+        tar -czvf build.tar.gz build
 
     - name: Store the result
       uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.architecture }}-${{ matrix.ostype }}
-        path: build/
+        path: build.tar.gz
         retention-days: 1
 
 
@@ -93,12 +95,9 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: ${{ matrix.architecture }}-${{ matrix.os.ostype }}
-        path: build/
 
-    - name: Display structure of downloaded files
-      run: |
-        ls -la
-        ls -la build/
+    - name: Extract the build artifact
+      run: tar -xzvf build.tar.gz
 
     - name: Log in to the Container registry
       uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
@@ -121,6 +120,13 @@ jobs:
 
     - name: Build, and Package
       run: make package
+
+    - name: Store the result
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.architecture }}-${{ matrix.os.os }}--${{ matrix.os.version }}
+        path: package/*
+        retention-days: 1
 
     - name: Add Release Artifact to the Github Release
       if: ${{ needs.release.outputs.published == 'true' }}

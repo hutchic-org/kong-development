@@ -41,3 +41,4 @@ build:
 
 package: build
 	$(MAKE) DOCKER_TARGET=package DOCKER_RESULT="-o package" docker
+	ls package/*
