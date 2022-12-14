@@ -92,7 +92,7 @@ jobs:
     - name: Download the build-result artifact
       uses: actions/download-artifact@v3
       with:
-        name: ${{ matrix.architecture }}-${{ matrix.ostype }}
+        name: ${{ matrix.architecture }}-${{ matrix.os.ostype }}
 
     - name: Log in to the Container registry
       uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
