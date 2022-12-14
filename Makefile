@@ -1,7 +1,7 @@
 ARCHITECTURE ?= x86_64
 DOCKER_TARGET ?= build
 DOCKER_REGISTRY ?= ghcr.io
-DOCKER_IMAGE_NAME ?= kong-development
+DOCKER_IMAGE_NAME ?= hutchic-org/kong-development
 DOCKER_IMAGE_TAG ?= $(DOCKER_TARGET)-$(ARCHITECTURE)-$(OSTYPE)
 DOCKER_NAME ?= $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)
 DOCKERFILE_NAME ?= Dockerfile.$(DOCKER_TARGET)
@@ -31,10 +31,13 @@ else
 	DOCKER_ARCHITECTURE=amd64
 endif
 
+DOCKER_OFFICIAL_TAG ?= $(DOCKER_ARCHITECTURE)-$(OPERATING_SYSTEM)-$(OPERATING_SYSTEM_VERSION)
+DOCKER_OFFICIAL_IMAGE_NAME ?= $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_NAME):$(DOCKER_OFFICIAL_TAG)
+
 clean:
 	-rm -rf build
 	-rm -rf package
-	-docker rmi $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_NAME):$(DOCKER_ARCHITECTURE)-$(OPERATING_SYSTEM)-$(OPERATING_SYSTEM_VERSION)
+	-docker rmi $(DOCKER_OFFICIAL_IMAGE_NAME)
 
 clean/submodules:
 	-git reset --hard
@@ -63,7 +66,8 @@ build/docker:
 build:
 	$(MAKE) DOCKER_TARGET=build DOCKER_RESULT="-o build" build/docker
 
-package: build
+package:
+	$(MAKE) build
 	$(MAKE) DOCKER_TARGET=package DOCKER_RESULT="-o package" build/docker
 	ls package/*
 
@@ -78,8 +82,9 @@ ifneq ($(PACKAGE_TYPE),rpm)
 endif
 	cd docker-kong && \
 	docker buildx build \
+		--load \
 		--platform=linux/$(DOCKER_ARCHITECTURE) \
 		--build-arg ASSET=local \
 		-f Dockerfile.$(PACKAGE_TYPE) \
-		-t $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_NAME):$(DOCKER_ARCHITECTURE)-$(OPERATING_SYSTEM)-$(OPERATING_SYSTEM_VERSION) .
-	$(MAKE) clean/submodule
+		-t $(DOCKER_OFFICIAL_IMAGE_NAME) . && \
+	git restore .
