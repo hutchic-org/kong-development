@@ -6,6 +6,7 @@ on:  # yamllint disable-line rule:truthy
   push:
     branches:
     - main
+    - release/*
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -60,6 +61,7 @@ jobs:
       run: |
         echo "ARCHITECTURE=${{ matrix.architecture }}" >> $GITHUB_ENV
         echo "OSTYPE=${{ matrix.ostype }}" >> $GITHUB_ENV
+        echo "KONG_VERSION=`./grep-kong-version.sh`" >> $GITHUB_ENV
 
     - name: Build and Archive
       run: |
@@ -117,6 +119,7 @@ jobs:
         echo "OSTYPE=${{ matrix.os.ostype }}" >> $GITHUB_ENV
         echo "OPERATING_SYSTEM=${{ matrix.os.os }}" >> $GITHUB_ENV
         echo "OPERATING_SYSTEM_VERSION=${{ matrix.os.version }}" >> $GITHUB_ENV
+        echo "KONG_VERSION=`./grep-kong-version.sh`" >> $GITHUB_ENV
 
     - name: Build, and Package
       run: make package
@@ -175,6 +178,7 @@ jobs:
         echo "REGISTRY=ghcr.io" >> $GITHUB_ENV
         echo "OPERATING_SYSTEM=${{ matrix.os.os }}" >> $GITHUB_ENV
         echo "OPERATING_SYSTEM_VERSION=${{ matrix.os.version }}" >> $GITHUB_ENV
+        echo "KONG_VERSION=`./grep-kong-version.sh`" >> $GITHUB_ENV
 
     - name: Build Docker Image
       run: make docker
@@ -193,6 +197,8 @@ jobs:
           type=ref,event=branch
           type=semver,pattern={{version}},value=${{ needs.release.outputs.release-git-tag }}
           type=semver,pattern={{major}}.{{minor}},value=${{ needs.release.outputs.release-git-tag }}
+          type=semver,pattern={{version}},value=${{ env.KONG_VERSION }}
+          type=semver,pattern={{major}}.{{minor}},value=${{ env.KONG_VERSION }}
 
     - name: Retag and Push
       if: ${{ needs.release.outputs.published == 'true' }}
@@ -200,6 +206,35 @@ jobs:
         for tag in ${{ steps.meta.outputs.tags }}; do \
           docker tag ghcr.io/hutchic-org/kong-development:${{ matrix.architecture.docker }}-${{ matrix.os.os }}-${{ matrix.os.version }} $tag && \
           docker push $tag; \
+        done
+
+  build-multi-arch-docker:
+    needs: [release, build-packages, build-docker-artifacts]
+    name: Build multi-arch manifests
+    if: ${{ needs.release.outputs.published == 'true' }}
+    strategy:
+      matrix:
+        os: [{os: ubuntu, version: rolling}, {os: ubuntu, version: 16.04}, {os: debian, version: testing}, {os: debian, version: 10}, {os: rhel, version: 8},
+          {os: alpine, version: 3}]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Log in to the Container registry
+      uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Combine per architecture images into a single multi-arch manifest
+      if: ${{ needs.release.outputs.published == 'true' }}
+      run: |
+        docker pull ghcr.io/hutchic-org/kong-development:main-amd64-${{ matrix.os.os }}-${{ matrix.os.version }}
+        docker pull ghcr.io/hutchic-org/kong-development:main-arm64-${{ matrix.os.os }}-${{ matrix.os.version }}
+        for tag in ${{ steps.meta.outputs.tags }}; do \
+          docker manifest create ghcr.io/hutchic-org/kong-runtime:$tag \
+            ghcr.io/hutchic-org/kong-development:main-amd64-${{ matrix.os.os }}-${{ matrix.os.version }} \
+            ghcr.io/hutchic-org/kong-development:main-arm64-${{ matrix.os.os }}-${{ matrix.os.version }} && \
+          docker manifest push ghcr.io/hutchic-org/kong-runtime:$tag; \
         done
 
   done:
