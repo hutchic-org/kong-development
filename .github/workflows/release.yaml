@@ -62,19 +62,19 @@ jobs:
         echo "OSTYPE=${{ matrix.ostype }}" >> $GITHUB_ENV
 
     - name: Build
-      run: make build-result
+      run: make build
 
     - name: Store the result
       uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.architecture }}-${{ matrix.ostype }}
-        path: build-result/
+        path: build/
         retention-days: 1
 
 
   build-packages:
     needs: [release, build-base-artifacts]
-    name: Create Release Artifacts
+    name: Create Packaged Artifacts
     strategy:
       matrix:
         architecture: [x86_64]
@@ -89,7 +89,7 @@ jobs:
         submodules: true
         token: ${{ secrets.GH_TOKEN }}
 
-    - name: Download the build-result artifact
+    - name: Download the build artifact
       uses: actions/download-artifact@v3
       with:
         name: ${{ matrix.architecture }}-${{ matrix.os.ostype }}

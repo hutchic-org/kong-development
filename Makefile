@@ -5,13 +5,14 @@ DOCKER_REGISTRY ?= ghcr.io
 DOCKER_IMAGE_NAME ?= kong-development
 DOCKER_IMAGE_TAG ?= $(DOCKER_TARGET)-$(ARCHITECTURE)-$(OSTYPE)
 DOCKER_NAME ?= $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)
+DOCKERFILE_NAME ?= Dockerfile.$(DOCKER_TARGET)
 DOCKER_RESULT ?= --load
 OPERATING_SYSTEM ?= ubuntu
 OPERATING_SYSTEM_VERSION ?= 22.04
 
 clean:
+	-rm -rf build
 	-rm -rf package
-	-rm -rf build-result
 
 clean/submodules:
 	-git reset --hard
@@ -31,14 +32,12 @@ docker:
 		--build-arg ARCHITECTURE=$(ARCHITECTURE) \
 		--build-arg OSTYPE=$(OSTYPE) \
 		--target=$(DOCKER_TARGET) \
+		-f $(DOCKERFILE_NAME) \
 		-t $(DOCKER_NAME) \
 		$(DOCKER_RESULT) .
 
+build:
+	$(MAKE) DOCKER_TARGET=build DOCKER_RESULT="-o build" docker
 
-build-result:
-	$(MAKE) DOCKER_TARGET=build-result DOCKER_RESULT="-o build-result" docker
-
-package: build-result
+package: build
 	$(MAKE) DOCKER_TARGET=package DOCKER_RESULT="-o package" docker
-
-official-images:

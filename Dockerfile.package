@@ -1,0 +1,26 @@
+# Use FPM to change the contents of /tmp/build into a deb / rpm / apk.tar.gz
+FROM kong/fpm:0.5.1 as fpm
+
+COPY /build /tmp/build
+COPY /fpm /fpm
+
+# Keep sync'd with the fpm/package.sh variables
+ARG PACKAGE_TYPE=deb
+ENV PACKAGE_TYPE=${PACKAGE_TYPE}
+
+ARG KONG_VERSION=3.0.1
+ENV KONG_VERSION=${KONG_VERSION}
+
+ARG OPERATING_SYSTEM=ubuntu
+ENV OPERATING_SYSTEM=${OPERATING_SYSTEM}
+
+ARG OPERATING_SYSTEM_VERSION="22.04"
+ENV OPERATING_SYSTEM_VERSION=${OPERATING_SYSTEM_VERSION}
+
+WORKDIR /fpm
+RUN ./package.sh
+
+
+# Copy the build result to scratch so we can export the result
+FROM scratch as package
+COPY --from=fpm /output/* /
