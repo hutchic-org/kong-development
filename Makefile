@@ -36,6 +36,6 @@ docker:
 		$(DOCKER_RESULT) .
 
 package:
-	$(MAKE) DOCKER_TARGET=build docker
-	$(MAKE) DOCKER_TARGET=fpm docker
 	$(MAKE) DOCKER_TARGET=package DOCKER_RESULT="-o package" docker
+
+official-images:
