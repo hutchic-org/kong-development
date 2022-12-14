@@ -14,8 +14,6 @@ function test() {
 
     kong version
     kong roar
-    #KONG_DATABASE=off kong start
-    #curl localhost:8001
 
     mv /tmp/buffer /tmp/build
     echo '--- tested kong ---'
