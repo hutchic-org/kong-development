@@ -9,6 +9,8 @@ fi
 
 function test() {
     echo '--- testing kong ---'
+    groupadd -g 10000 nobody || true
+
     cp -R /tmp/build/* /
     mv /tmp/build /tmp/buffer # Check we didn't link dependencies to `/tmp/build/...`
 
