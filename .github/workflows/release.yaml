@@ -93,6 +93,12 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: ${{ matrix.architecture }}-${{ matrix.os.ostype }}
+        path: build/
+
+    - name: Display structure of downloaded files
+      run: |
+        ls -la
+        ls -la build/
 
     - name: Log in to the Container registry
       uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
