@@ -135,9 +135,76 @@ jobs:
         tag_name: ${{ needs.release.outputs.release-git-tag }}
         files: package/*
 
-  packages-done:
+  build-docker-artifacts:
     needs: [release, build-packages]
-    name: Packages Done
+    name: Build Docker Containers
+    if: needs.build-packages.result == 'success'
+    strategy:
+      matrix:
+        architecture: [{cpu: x86_64, docker: amd64}, {cpu: aarch64, docker: arm64}]
+        os: [{os: ubuntu, version: rolling}, {os: ubuntu, version: 16.04}, {os: debian, version: testing}, {os: debian, version: 10}, {os: rhel, version: 8},
+          {os: alpine, version: 3}]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        submodules: true
+        token: ${{ secrets.GH_TOKEN }}
+
+    - name: Download the package
+      uses: actions/download-artifact@v3
+      with:
+        name: ${{ matrix.architecture.docker }}-${{ matrix.os.os }}-${{ matrix.os.version }}
+        path: package/
+
+    - name: Log in to the Container registry
+      uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - uses: docker/setup-qemu-action@v2
+
+    - uses: docker/setup-buildx-action@v2
+
+    - name: Set environment variables
+      run: |
+        echo "ARCHITECTURE=${{ matrix.architecture.cpu }}" >> $GITHUB_ENV
+        echo "REGISTRY=ghcr.io" >> $GITHUB_ENV
+        echo "OPERATING_SYSTEM=${{ matrix.os.os }}" >> $GITHUB_ENV
+        echo "OPERATING_SYSTEM_VERSION=${{ matrix.os.version }}" >> $GITHUB_ENV
+
+    - name: Build Docker Image
+      run: make docker
+
+    - name: Docker meta
+      if: ${{ needs.release.outputs.published == 'true' }}
+      id: meta
+      uses: docker/metadata-action@v4
+      with:
+        images: ghcr.io/hutchic-org/kong-development
+        sep-tags: ' '
+        flavor: |
+          suffix=-${{ matrix.architecture.docker }}-${{ matrix.os.os }}-${{ matrix.os.version }}
+        tags: |
+          type=sha
+          type=ref,event=branch
+          type=semver,pattern={{version}},value=${{ needs.release.outputs.release-git-tag }}
+          type=semver,pattern={{major}},value=${{ needs.release.outputs.release-git-tag }}
+
+    - name: Retag and Push
+      if: ${{ needs.release.outputs.published == 'true' }}
+      run: |
+        for tag in ${{ steps.meta.outputs.tags }}; do \
+          docker tag ghcr.io/kong-development:${{ matrix.architecture.docker }}-${{ matrix.os.os }}-${{ matrix.os.version }} $tag && \
+          docker push $tag; \
+        done
+
+  done:
+    needs: [release, build-packages, build-docker-artifacts]
+    name: Done
     if: needs.build-packages.result == 'success'
     runs-on: ubuntu-latest
     steps:

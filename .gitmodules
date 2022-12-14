@@ -1,3 +1,6 @@
 [submodule "kong"]
 	path = kong
 	url = https://github.com/Kong/kong.git
+[submodule "docker-kong"]
+	path = docker-kong
+	url = https://github.com/Kong/docker-kong.git
