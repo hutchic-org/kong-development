@@ -60,6 +60,7 @@ jobs:
       run: |
         echo "ARCHITECTURE=${{ matrix.architecture }}" >> $GITHUB_ENV
         echo "OSTYPE=${{ matrix.ostype }}" >> $GITHUB_ENV
+        echo "KONG_VERSION=`./grep-kong-version.sh`" >> $GITHUB_ENV
 
     - name: Build and Archive
       run: |
@@ -117,6 +118,7 @@ jobs:
         echo "OSTYPE=${{ matrix.os.ostype }}" >> $GITHUB_ENV
         echo "OPERATING_SYSTEM=${{ matrix.os.os }}" >> $GITHUB_ENV
         echo "OPERATING_SYSTEM_VERSION=${{ matrix.os.version }}" >> $GITHUB_ENV
+        echo "KONG_VERSION=`./grep-kong-version.sh`" >> $GITHUB_ENV
 
     - name: Build, and Package
       run: make package
@@ -175,6 +177,7 @@ jobs:
         echo "REGISTRY=ghcr.io" >> $GITHUB_ENV
         echo "OPERATING_SYSTEM=${{ matrix.os.os }}" >> $GITHUB_ENV
         echo "OPERATING_SYSTEM_VERSION=${{ matrix.os.version }}" >> $GITHUB_ENV
+        echo "KONG_VERSION=`./grep-kong-version.sh`" >> $GITHUB_ENV
 
     - name: Build Docker Image
       run: make docker
@@ -193,6 +196,8 @@ jobs:
           type=ref,event=branch
           type=semver,pattern={{version}},value=${{ needs.release.outputs.release-git-tag }}
           type=semver,pattern={{major}}.{{minor}},value=${{ needs.release.outputs.release-git-tag }}
+          type=semver,pattern={{version}},value=${{ env.KONG_VERSION }}
+          type=semver,pattern={{major}}.{{minor}},value=${{ env.KONG_VERSION }}
 
     - name: Retag and Push
       if: ${{ needs.release.outputs.published == 'true' }}
