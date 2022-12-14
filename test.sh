@@ -16,6 +16,9 @@ function test() {
     kong roar
     KONG_DATABASE=off kong start
     curl localhost:8001
+    KONG_DATABASE=off kong restart
+    curl localhost:8001
+    kong stop
 
     mv /tmp/buffer /tmp/build
     echo '--- tested kong ---'
