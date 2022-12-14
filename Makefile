@@ -8,6 +8,7 @@ DOCKERFILE_NAME ?= Dockerfile.$(DOCKER_TARGET)
 DOCKER_RESULT ?= --load
 OPERATING_SYSTEM ?= ubuntu
 OPERATING_SYSTEM_VERSION ?= 22.04
+KONG_VERSION ?= `./grep-kong-version.sh`
 
 ifeq ($(OPERATING_SYSTEM),alpine)
 	OSTYPE?=linux-musl
@@ -57,6 +58,7 @@ build/docker:
 		--build-arg OPERATING_SYSTEM_VERSION=$(OPERATING_SYSTEM_VERSION) \
 		--build-arg ARCHITECTURE=$(ARCHITECTURE) \
 		--build-arg PACKAGE_TYPE=$(PACKAGE_TYPE) \
+		--build-arg KONG_VERSION=$(KONG_VERSION) \
 		--build-arg OSTYPE=$(OSTYPE) \
 		--target=$(DOCKER_TARGET) \
 		-f $(DOCKERFILE_NAME) \
