@@ -121,8 +121,10 @@ jobs:
         echo "OPERATING_SYSTEM_VERSION=${{ matrix.os.version }}" >> $GITHUB_ENV
         echo "KONG_VERSION=`./grep-kong-version.sh`" >> $GITHUB_ENV
 
-    - name: Build, and Package
-      run: make package
+    - name: Build, Package, and Test
+      run: |
+        make package
+        make package/test
 
     - name: Store the result
       uses: actions/upload-artifact@v3
