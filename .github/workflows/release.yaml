@@ -259,7 +259,7 @@ jobs:
         done
 
   done:
-    needs: [release, build-packages, build-docker-artifacts]
+    needs: [build-multi-arch-docker]
     name: Done
     if: needs.build-packages.result == 'success'
     runs-on: ubuntu-latest
