@@ -1,5 +1,5 @@
 {
-  "branches": ["main"],
+  "branches": ["main", "release/1.3.x"],
   "tagFormat": "${version}",
   "repositoryUrl": "https://github.com/hutchic-org/kong-development.git",
   "plugins": [
