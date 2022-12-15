@@ -225,6 +225,27 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Set environment variables
+      run: |
+        echo "KONG_VERSION=`./grep-kong-version.sh`" >> $GITHUB_ENV
+
+    - name: Docker meta
+      if: ${{ needs.release.outputs.published == 'true' }}
+      id: meta
+      uses: docker/metadata-action@v4
+      with:
+        images: ghcr.io/hutchic-org/kong-development
+        sep-tags: ' '
+        flavor: |
+          suffix=-${{ matrix.os.os }}-${{ matrix.os.version }}
+        tags: |
+          type=sha
+          type=ref,event=branch
+          type=semver,pattern={{version}},value=${{ needs.release.outputs.release-git-tag }}
+          type=semver,pattern={{major}}.{{minor}},value=${{ needs.release.outputs.release-git-tag }}
+          type=semver,pattern={{version}},value=${{ env.KONG_VERSION }}
+          type=semver,pattern={{major}}.{{minor}},value=${{ env.KONG_VERSION }}
+
     - name: Combine per architecture images into a single multi-arch manifest
       if: ${{ needs.release.outputs.published == 'true' }}
       run: |
