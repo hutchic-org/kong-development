@@ -252,10 +252,10 @@ jobs:
         docker pull ghcr.io/hutchic-org/kong-development:${{ needs.release.outputs.release-git-tag }}-arm64-${{ matrix.os.os }}-${{ matrix.os.version }}
         docker pull ghcr.io/hutchic-org/kong-development:${{ needs.release.outputs.release-git-tag }}-amd64-${{ matrix.os.os }}-${{ matrix.os.version }}
         for tag in ${{ steps.meta.outputs.tags }}; do \
-          docker manifest create ghcr.io/hutchic-org/kong-runtime:$tag \
+          docker manifest create $tag \
             ghcr.io/hutchic-org/kong-development:${{ needs.release.outputs.release-git-tag }}-arm64-${{ matrix.os.os }}-${{ matrix.os.version }} \
             ghcr.io/hutchic-org/kong-development:${{ needs.release.outputs.release-git-tag }}-amd64-${{ matrix.os.os }}-${{ matrix.os.version }} && \
-          docker manifest push ghcr.io/hutchic-org/kong-runtime:$tag; \
+          docker manifest push $tag; \
         done
 
   done:
