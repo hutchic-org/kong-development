@@ -75,7 +75,7 @@ function main() {
   fi
 
   if [[ "$PACKAGE_TYPE" == "rpm" ]]; then
-    docker exec ${USE_TTY} package-validation-tests /bin/bash -c "yum install -y /src/*.rpm procps"
+    docker exec ${USE_TTY} package-validation-tests /bin/bash -c "yum install -y /src/*.rpm procps util-linux"
     docker exec ${USE_TTY} package-validation-tests /bin/bash -c "kong version"
   fi
 
@@ -108,13 +108,13 @@ function main() {
 
   docker kill package-validation-tests
 
-  if [[ "$PACKAGE_TYPE" == "rpm" ]]; then
+  if [[ "$OPERATING_SYSTEM" == "rhel" ]]; then
     docker kill systemd || true
 
     sleep 5
 
     docker run -d --rm --name=systemd --privileged --tmpfs /tmp --tmpfs /run --tmpfs /run/lock -v ${PWD}/package:/src redhat/ubi8-init
-    docker exec ${USE_TTY} systemd /bin/bash -c "yum install -y /src/*.rpm"
+    docker exec ${USE_TTY} systemd /bin/bash -c "yum install -y /src/*.rpm procps util-linux"
     docker exec ${USE_TTY} systemd /bin/bash -c "kong version"
 
     docker exec ${USE_TTY} systemd /bin/bash -c "test -f /etc/kong/kong*.logrotate"
