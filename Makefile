@@ -39,6 +39,8 @@ clean:
 	-rm -rf build
 	-rm -rf package
 	-docker rmi $(DOCKER_OFFICIAL_IMAGE_NAME)
+	-docker kill docker kill package-validation-tests
+	-docker kill systemd
 
 clean/submodules:
 	-git reset --hard
@@ -67,6 +69,11 @@ build/docker:
 
 build:
 	$(MAKE) DOCKER_TARGET=build DOCKER_RESULT="-o build" build/docker
+
+package/test: package
+	PACKAGE_TYPE=$(PACKAGE_TYPE) \
+	DOCKER_ARCHITECTURE=$(DOCKER_ARCHITECTURE) \
+	/bin/bash ./test-package.sh
 
 package:
 	$(MAKE) build
