@@ -249,12 +249,12 @@ jobs:
     - name: Combine per architecture images into a single multi-arch manifest
       if: ${{ needs.release.outputs.published == 'true' }}
       run: |
-        docker pull ghcr.io/hutchic-org/kong-development:main-amd64-${{ matrix.os.os }}-${{ matrix.os.version }}
-        docker pull ghcr.io/hutchic-org/kong-development:main-arm64-${{ matrix.os.os }}-${{ matrix.os.version }}
+        docker pull ghcr.io/hutchic-org/kong-development:${{ needs.release.outputs.release-git-tag }}-arm64-${{ matrix.os.os }}-${{ matrix.os.version }}
+        docker pull ghcr.io/hutchic-org/kong-development:${{ needs.release.outputs.release-git-tag }}-amd64-${{ matrix.os.os }}-${{ matrix.os.version }}
         for tag in ${{ steps.meta.outputs.tags }}; do \
           docker manifest create ghcr.io/hutchic-org/kong-runtime:$tag \
-            ghcr.io/hutchic-org/kong-development:main-amd64-${{ matrix.os.os }}-${{ matrix.os.version }} \
-            ghcr.io/hutchic-org/kong-development:main-arm64-${{ matrix.os.os }}-${{ matrix.os.version }} && \
+            ghcr.io/hutchic-org/kong-development:${{ needs.release.outputs.release-git-tag }}-arm64-${{ matrix.os.os }}-${{ matrix.os.version }} \
+            ghcr.io/hutchic-org/kong-development:${{ needs.release.outputs.release-git-tag }}-amd64-${{ matrix.os.os }}-${{ matrix.os.version }} && \
           docker manifest push ghcr.io/hutchic-org/kong-runtime:$tag; \
         done
 
