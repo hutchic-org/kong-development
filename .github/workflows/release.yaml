@@ -75,7 +75,6 @@ jobs:
         path: build.tar.gz
         retention-days: 1
 
-
   build-packages:
     needs: [release, build-base-artifacts]
     name: Create Packaged Artifacts
@@ -267,7 +266,7 @@ jobs:
         done
 
   done:
-    needs: [build-multi-arch-docker]
+    needs: [build-docker-artifacts]
     name: Done
     if: needs.build-packages.result == 'success'
     runs-on: ubuntu-latest
