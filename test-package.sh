@@ -69,7 +69,7 @@ function main() {
 
   if [[ "$PACKAGE_TYPE" == "deb" ]]; then
     docker exec ${USE_TTY} package-validation-tests /bin/bash -c "apt-get update"
-    docker exec ${USE_TTY} package-validation-tests /bin/bash -c "apt-get install -y perl-base zlib1g-dev"
+    docker exec ${USE_TTY} package-validation-tests /bin/bash -c "apt-get install -y perl-base zlib1g-dev procps"
     docker exec ${USE_TTY} package-validation-tests /bin/bash -c "apt install --yes /src/*.deb"
     docker exec ${USE_TTY} package-validation-tests /bin/bash -c "kong version"
   fi
