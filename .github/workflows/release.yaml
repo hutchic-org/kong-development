@@ -75,7 +75,6 @@ jobs:
         path: build.tar.gz
         retention-days: 1
 
-
   build-packages:
     needs: [release, build-base-artifacts]
     name: Create Packaged Artifacts
@@ -121,8 +120,10 @@ jobs:
         echo "OPERATING_SYSTEM_VERSION=${{ matrix.os.version }}" >> $GITHUB_ENV
         echo "KONG_VERSION=`./grep-kong-version.sh`" >> $GITHUB_ENV
 
-    - name: Build, and Package
-      run: make package
+    - name: Build, Package, and Test
+      run: |
+        make package
+        make package/test
 
     - name: Store the result
       uses: actions/upload-artifact@v3
@@ -265,7 +266,7 @@ jobs:
         done
 
   done:
-    needs: [build-multi-arch-docker]
+    needs: [build-docker-artifacts]
     name: Done
     if: needs.build-packages.result == 'success'
     runs-on: ubuntu-latest

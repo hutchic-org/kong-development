@@ -38,9 +38,7 @@ function main {
   elif [ "$PACKAGE_TYPE" == "rpm" ]; then
     FPM_PARAMS="-d pcre -d perl -d perl-Time-HiRes -d zlib -d zlib-devel"
     PACKAGE_SUFFIX=".rhel${OPERATING_SYSTEM_VERSION}"
-    if [ "$OPERATING_SYSTEM_VERSION" == "7" ]; then
-      FPM_PARAMS="${FPM_PARAMS} -d hostname"
-    fi
+    FPM_PARAMS="${FPM_PARAMS} -d hostname"
     if [ "$OPERATING_SYSTEM" == "amazonlinux" ]; then
       PACKAGE_SUFFIX=".aws"
       FPM_PARAMS="${FPM_PARAMS} -d /usr/sbin/useradd -d /usr/sbin/groupadd"
