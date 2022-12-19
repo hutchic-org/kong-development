@@ -28,7 +28,7 @@ jobs:
 
     - name: Release
       id: release
-      uses: ahmadnassri/action-semantic-release@v2.1.10
+      uses: ahmadnassri/action-semantic-release@v2.1.11
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
