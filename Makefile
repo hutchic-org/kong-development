@@ -67,6 +67,11 @@ build/docker:
 		-t $(DOCKER_NAME) \
 		$(DOCKER_RESULT) .
 
+dev:
+	$(MAKE) DOCKER_NAME=kong-build DOCKERFILE_NAME=Dockerfile.build DOCKER_TARGET=building build/docker
+	docker build -t kong-dev -f Dockerfile.dev .
+	docker run -it --rm --name kong-dev -v $(PWD)/kong:/kong kong-dev /bin/bash
+
 build:
 	$(MAKE) DOCKER_TARGET=build DOCKER_RESULT="-o build" build/docker
 
