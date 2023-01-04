@@ -116,6 +116,24 @@ development/run: development/build
 development: development/run
 	docker-compose exec kong /bin/bash
 
+kong/test: kong/test/integration kong/test/dbless kong/test/plugins kong/test/pdk kong/test/unit
+
+kong/test/integration:
+	$(MAKE) TEST_SUITE=integration development/run
+	docker-compose exec kong /root/test-kong.sh
+
+kong/test/dbless:
+	$(MAKE) TEST_SUITE=dbless development/run
+	docker-compose exec kong /root/test-kong.sh
+
+kong/test/plugins:
+	$(MAKE) TEST_SUITE=plugins development/run
+	docker-compose exec kong /root/test-kong.sh
+
+kong/test/pdk:
+	$(MAKE) TEST_SUITE=pdk development/run
+	docker-compose exec kong /root/test-kong.sh
+
 kong/test/unit:
 	$(MAKE) TEST_SUITE=unit development/run
 	docker-compose exec kong /root/test-kong.sh

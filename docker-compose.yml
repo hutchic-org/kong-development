@@ -35,7 +35,7 @@ services:
     - ./kong/:/kong
     environment:
       JOBS: 2
-      TEST_SPLIT: ${TEST_SPLIT:-first}
+      TEST_SPLIT: ${TEST_SPLIT:-}
       TEST_SUITE: ${TEST_SUITE:-integration}
       KONG_DATABASE: ${TEST_DATABASE:-postgres}
       KONG_TEST_DATABASE: ${TEST_DATABASE:-postgres}
