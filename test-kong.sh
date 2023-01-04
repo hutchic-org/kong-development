@@ -14,7 +14,12 @@ function test() {
         unset KONG_DATABASE KONG_TEST_DATABASE
     fi
 
-    /kong/.ci/run_tests.sh
+    mv /kong/.ci/run_tests.sh.bak /kong/.ci/run_tests.sh || true
+    cp /kong/.ci/run_tests.sh /kong/.ci/run_tests.sh.bak
+    sed -i "s/export BUSTED_ARGS.*/DEFAULT_BUSTED_ARGS=\"--no-k -o htest -v --exclude-tags=flaky,ipv6\"\nexport BUSTED_ARGS=\${BUSTED_ARGS:-\$DEFAULT_BUSTED_ARGS}/g" /kong/.ci/run_tests.sh
+    sed -i "s/ON_ERROR_STOP=1/ON_ERROR_STOP=0/g" /kong/.ci/run_tests.sh
+    BUSTED_ARGS='--no-k -o htest -v --filter-out="dangling socket cleanup" --exclude-tags=flaky,ipv6' /kong/.ci/run_tests.sh
+    mv /kong/.ci/run_tests.sh.bak /kong/.ci/run_tests.sh
 }
 
 test

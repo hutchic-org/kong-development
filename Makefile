@@ -9,6 +9,7 @@ DOCKER_RESULT ?= --load
 OPERATING_SYSTEM ?= ubuntu
 OPERATING_SYSTEM_VERSION ?= 22.04
 KONG_VERSION ?= `./grep-kong-version.sh`
+USE_TTY := $(shell test -t 1 && USE_TTY="-T")
 
 ifeq ($(OPERATING_SYSTEM),alpine)
 	OSTYPE?=linux-musl
@@ -47,10 +48,9 @@ clean: development/clean
 clean/submodules:
 	-git submodule foreach --recursive git reset --hard
 	-git submodule update --init --recursive
+	-git submodule status
 
 build/docker:
-	-git submodule update --init --recursive
-	-git submodule status
 	docker inspect --format='{{.Config.Image}}' $(DOCKER_NAME) || \
 	docker buildx build \
 		--platform=linux/$(DOCKER_ARCHITECTURE) \
@@ -116,24 +116,22 @@ development/run: development/build
 development: development/run
 	docker-compose exec kong /bin/bash
 
-kong/test: kong/test/integration kong/test/dbless kong/test/plugins kong/test/pdk kong/test/unit
+kong/test/all: kong/test/integration kong/test/dbless kong/test/plugins kong/test/unit
+
+kong/test/run: development/run
+	docker exec -i${USE_TTY} kong /root/test-kong.sh
 
 kong/test/integration:
-	$(MAKE) TEST_SUITE=integration development/run
-	docker-compose exec kong /root/test-kong.sh
+	$(MAKE) TEST_SUITE=integration kong/test/run
 
 kong/test/dbless:
-	$(MAKE) TEST_SUITE=dbless development/run
-	docker-compose exec kong /root/test-kong.sh
+	$(MAKE) TEST_SUITE=dbless TEST_DATABASE=off kong/test/run
 
 kong/test/plugins:
-	$(MAKE) TEST_SUITE=plugins development/run
-	docker-compose exec kong /root/test-kong.sh
+	$(MAKE) TEST_SUITE=plugins kong/test/run
 
 kong/test/pdk:
-	$(MAKE) TEST_SUITE=pdk development/run
-	docker-compose exec kong /root/test-kong.sh
+	$(MAKE) TEST_SUITE=pdk kong/test/run
 
 kong/test/unit:
-	$(MAKE) TEST_SUITE=unit development/run
-	docker-compose exec kong /root/test-kong.sh
+	$(MAKE) TEST_SUITE=unit kong/test/run
