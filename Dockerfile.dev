@@ -23,6 +23,7 @@ RUN groupadd -g 10000 nobody && \
     net-tools \
     valgrind \
     libc-dev \
+    postgresql-client \
     net-tools && \
     dpkg-reconfigure --frontend noninteractive tzdata && \
     curl -L https://cpanmin.us | perl - App::cpanminus \
@@ -31,6 +32,7 @@ RUN groupadd -g 10000 nobody && \
 
 COPY --from=kong-build /tmp/build /
 COPY --from=kong-build /test /test
+COPY test-kong.sh /root/test-kong.sh
 COPY kong /kong
 
 RUN mkdir -p /tmp/build && \

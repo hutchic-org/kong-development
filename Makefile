@@ -35,15 +35,16 @@ endif
 DOCKER_OFFICIAL_TAG ?= $(DOCKER_ARCHITECTURE)-$(OPERATING_SYSTEM)-$(OPERATING_SYSTEM_VERSION)
 DOCKER_OFFICIAL_IMAGE_NAME ?= $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_NAME):$(DOCKER_OFFICIAL_TAG)
 
-clean:
+clean: development/clean
 	-rm -rf build
 	-rm -rf package
 	-docker rmi $(DOCKER_OFFICIAL_IMAGE_NAME)
+	-docker rmi kong-build
+	-docker rmi kong-dev
 	-docker kill docker kill package-validation-tests
 	-docker kill systemd
 
 clean/submodules:
-	-git reset --hard
 	-git submodule foreach --recursive git reset --hard
 	-git submodule update --init --recursive
 
@@ -66,11 +67,6 @@ build/docker:
 		-f $(DOCKERFILE_NAME) \
 		-t $(DOCKER_NAME) \
 		$(DOCKER_RESULT) .
-
-dev:
-	$(MAKE) DOCKER_NAME=kong-build DOCKERFILE_NAME=Dockerfile.build DOCKER_TARGET=building build/docker
-	docker build -t kong-dev -f Dockerfile.dev .
-	docker run -it --rm --name kong-dev -v $(PWD)/kong:/kong kong-dev /bin/bash
 
 build:
 	$(MAKE) DOCKER_TARGET=build DOCKER_RESULT="-o build" build/docker
@@ -102,3 +98,24 @@ endif
 		-f Dockerfile.$(PACKAGE_TYPE) \
 		-t $(DOCKER_OFFICIAL_IMAGE_NAME) . && \
 	git restore .
+
+development/clean:
+	-docker-compose kill
+	-docker-compose rm -f
+
+development/build:
+	$(MAKE) DOCKER_NAME=kong-build DOCKERFILE_NAME=Dockerfile.build DOCKER_TARGET=building build/docker && \
+	docker inspect --format='{{.Config.Image}}' kong-dev || \
+	docker build -t kong-dev -f Dockerfile.dev .
+
+development/run: development/build
+	docker-compose up -d
+	bash -c 'healthy=$$(docker-compose ps | grep healthy | wc -l); while [[ "$$(( $$healthy ))" != "3" ]]; do docker-compose ps && sleep 5; done'
+	docker-compose logs
+
+development: development/run
+	docker-compose exec kong /bin/bash
+
+kong/test/unit:
+	$(MAKE) TEST_SUITE=unit development/run
+	docker-compose exec kong /root/test-kong.sh
