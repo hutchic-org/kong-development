@@ -17,10 +17,13 @@ FROM --platform=linux/arm64 ghcr.io/hutchic-org/kong-runtime:1.0.8-aarch64-linux
 FROM $ARCHITECTURE-$OSTYPE as building
 
 COPY . /tmp
-WORKDIR /tmp
-
 COPY kong /kong
+COPY kong/.requirements kong/distribution/ /distribution/
 
+WORKDIR /distribution
+RUN --mount=type=secret,id=github-token if [ -f "/distribution/pre-install.sh" ] ; then export GITHUB_TOKEN=`cat /run/secrets/github-token` && ./pre-install.sh; fi
+
+WORKDIR /tmp
 # Run our predecessor tests
 # Configure, build, and install
 # Run our own tests

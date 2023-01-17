@@ -51,6 +51,8 @@ clean/submodules:
 	-git submodule status
 
 build/docker:
+	-rm github-token
+	echo $$GITHUB_TOKEN > github-token
 	docker inspect --format='{{.Config.Image}}' $(DOCKER_NAME) || \
 	docker buildx build \
 		--platform=linux/$(DOCKER_ARCHITECTURE) \
@@ -63,10 +65,12 @@ build/docker:
 		--build-arg PACKAGE_TYPE=$(PACKAGE_TYPE) \
 		--build-arg KONG_VERSION=$(KONG_VERSION) \
 		--build-arg OSTYPE=$(OSTYPE) \
+		--secret id=github-token,src=github-token \
 		--target=$(DOCKER_TARGET) \
 		-f $(DOCKERFILE_NAME) \
 		-t $(DOCKER_NAME) \
 		$(DOCKER_RESULT) .
+	-rm github-token
 
 build:
 	$(MAKE) DOCKER_TARGET=build DOCKER_RESULT="-o build" build/docker
