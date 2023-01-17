@@ -100,6 +100,7 @@ function main() {
   docker exec ${USE_TTY} package-validation-tests /bin/bash -c "KONG_DATABASE=off kong health"
   docker exec ${USE_TTY} package-validation-tests /bin/bash -c "ps aux | grep nginx | grep -v grep | grep -q root"
   docker exec ${USE_TTY} package-validation-tests /bin/bash -c "KONG_DATABASE=off kong stop"
+  docker exec ${USE_TTY} package-validation-tests /bin/bash -c "luarocks install version"
 
   docker exec ${USE_TTY} package-validation-tests /bin/sh -c "ls -l /etc/kong/kong.conf.default"
   docker exec ${USE_TTY} package-validation-tests /bin/sh -c "ls -l /etc/kong/kong*.logrotate"

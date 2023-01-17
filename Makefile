@@ -9,6 +9,7 @@ DOCKER_RESULT ?= --load
 OPERATING_SYSTEM ?= ubuntu
 OPERATING_SYSTEM_VERSION ?= 22.04
 KONG_VERSION ?= `./grep-kong-version.sh`
+USE_TTY := $(shell test -t 1 && USE_TTY="-T")
 
 ifeq ($(OPERATING_SYSTEM),alpine)
 	OSTYPE?=linux-musl
@@ -35,21 +36,21 @@ endif
 DOCKER_OFFICIAL_TAG ?= $(DOCKER_ARCHITECTURE)-$(OPERATING_SYSTEM)-$(OPERATING_SYSTEM_VERSION)
 DOCKER_OFFICIAL_IMAGE_NAME ?= $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_NAME):$(DOCKER_OFFICIAL_TAG)
 
-clean:
+clean: development/clean
 	-rm -rf build
 	-rm -rf package
 	-docker rmi $(DOCKER_OFFICIAL_IMAGE_NAME)
+	-docker rmi kong-build
+	-docker rmi kong-dev
 	-docker kill docker kill package-validation-tests
 	-docker kill systemd
 
 clean/submodules:
-	-git reset --hard
 	-git submodule foreach --recursive git reset --hard
 	-git submodule update --init --recursive
+	-git submodule status
 
 build/docker:
-	-git submodule update --init --recursive
-	-git submodule status
 	docker inspect --format='{{.Config.Image}}' $(DOCKER_NAME) || \
 	docker buildx build \
 		--platform=linux/$(DOCKER_ARCHITECTURE) \
@@ -97,3 +98,40 @@ endif
 		-f Dockerfile.$(PACKAGE_TYPE) \
 		-t $(DOCKER_OFFICIAL_IMAGE_NAME) . && \
 	git restore .
+
+development/clean:
+	-docker-compose kill
+	-docker-compose rm -f
+
+development/build:
+	$(MAKE) DOCKER_NAME=kong-build DOCKERFILE_NAME=Dockerfile.build DOCKER_TARGET=building build/docker && \
+	docker inspect --format='{{.Config.Image}}' kong-dev || \
+	docker build -t kong-dev -f Dockerfile.dev .
+
+development/run: development/build
+	docker-compose up -d
+	bash -c 'healthy=$$(docker-compose ps | grep healthy | wc -l); while [[ "$$(( $$healthy ))" != "3" ]]; do docker-compose ps && sleep 5; done'
+	docker-compose logs
+
+development: development/run
+	docker-compose exec kong /bin/bash
+
+kong/test/all: kong/test/integration kong/test/dbless kong/test/plugins kong/test/unit
+
+kong/test/run: development/run
+	docker exec -i${USE_TTY} kong /root/test-kong.sh
+
+kong/test/integration:
+	$(MAKE) TEST_SUITE=integration kong/test/run
+
+kong/test/dbless:
+	$(MAKE) TEST_SUITE=dbless TEST_DATABASE=off kong/test/run
+
+kong/test/plugins:
+	$(MAKE) TEST_SUITE=plugins kong/test/run
+
+kong/test/pdk:
+	$(MAKE) TEST_SUITE=pdk kong/test/run
+
+kong/test/unit:
+	$(MAKE) TEST_SUITE=unit kong/test/run
