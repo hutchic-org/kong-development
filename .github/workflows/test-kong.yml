@@ -1,0 +1,113 @@
+name: Test Kong
+on:
+  push:
+    branches:
+      - none
+
+# cancel previous runs if new commits are pushed to the PR, but run for each commit on master
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build test container
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        submodules: true
+        token: ${{ secrets.GH_TOKEN }}
+
+    - name: Lookup build cache
+      id: cache-deps
+      uses: actions/cache@v3
+      with:
+        path: /tmp/build/
+        key: ${{ hashFiles('kong/kong-*.rockspec', 'Dockerfile.dev', 'Dockerfile.build', 'build.sh', 'test-kong.sh') }}
+
+    - name: Log in to the Container registry
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build Kong Development image
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      run: |
+        make development/build
+        mkdir -p /tmp/build
+        docker save kong-dev > /tmp/build/kong-dev.tar
+
+  tests:
+    name: Run the Kong Tests
+    runs-on: ubuntu-22.04
+    needs: build
+    continue-on-error: true
+    strategy:
+      matrix:
+        test: [unit, dbless]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        submodules: true
+        token: ${{ secrets.GH_TOKEN }}
+
+    - name: Lookup build cache
+      id: cache-deps
+      uses: actions/cache@v3
+      with:
+        path: /tmp/build/
+        key: ${{ hashFiles('kong/kong-*.rockspec', 'Dockerfile.dev', 'Dockerfile.build', 'build.sh', 'test-kong.sh') }}
+
+    - name: Load images
+      run: |
+        docker load --input /tmp/build/kong-dev.tar
+        docker tag kong-dev kong-build
+        docker image ls -a
+
+    - name: Run the tests
+      run: |
+        make kong/test/${{ matrix.test }}
+
+  integration-tests:
+    name: Run the Kong Integration Tests
+    runs-on: ubuntu-22.04
+    needs: tests
+    continue-on-error: true
+    strategy:
+      matrix:
+        database: [postgres, cassandra]
+        test: [integration]
+        split: [first (01-04), second (>= 05)]
+    env:
+      TEST_DATABASE: ${{ matrix.database }}
+      TEST_SUITE: ${{ matrix.suite }}
+      TEST_SPLIT: ${{ matrix.split }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        submodules: true
+        token: ${{ secrets.GH_TOKEN }}
+
+    - name: Lookup build cache
+      id: cache-deps
+      uses: actions/cache@v3
+      with:
+        path: /tmp/build/
+        key: ${{ hashFiles('kong/kong-*.rockspec', 'Dockerfile.dev', 'Dockerfile.build', 'build.sh') }}
+
+    - name: Load images
+      run: |
+        docker load --input /tmp/build/kong-dev.tar
+        docker tag kong-dev kong-build
+        docker image ls -a
+
+    - name: Run the tests
+      run: |
+        make kong/test/${{ matrix.test }}

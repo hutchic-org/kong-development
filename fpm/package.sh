@@ -33,10 +33,10 @@ function main {
 
   FPM_PARAMS=
   if [ "$PACKAGE_TYPE" == "deb" ]; then
-    FPM_PARAMS="-d libpcre3 -d perl -d zlib1g-dev"
+    FPM_PARAMS="-d libpcre3 -d perl -d zlib1g-dev -d unzip"
     PACKAGE_SUFFIX="-${OPERATING_SYSTEM}-${OPERATING_SYSTEM_VERSION}"
   elif [ "$PACKAGE_TYPE" == "rpm" ]; then
-    FPM_PARAMS="-d pcre -d perl -d perl-Time-HiRes -d zlib -d zlib-devel"
+    FPM_PARAMS="-d pcre -d perl -d perl-Time-HiRes -d zlib -d zlib-devel -d unzip"
     PACKAGE_SUFFIX=".rhel${OPERATING_SYSTEM_VERSION}"
     FPM_PARAMS="${FPM_PARAMS} -d hostname"
     if [ "$OPERATING_SYSTEM" == "amazonlinux" ]; then
