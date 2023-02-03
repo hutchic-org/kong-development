@@ -64,11 +64,8 @@ branches:
     required_pull_request_reviews:
     required_status_checks:
       strict: true
-      contexts: [pre-commit, Create Release, 'Build Docker Containers (x86_64, amd64, ubuntu, rolling)', 'Build Docker Containers (x86_64, amd64, ubuntu,
-          16.04)', 'Build Docker Containers (x86_64, amd64, debian, testing)', 'Build Docker Containers (x86_64, amd64, debian, 10)', 'Build Docker Containers
-          (x86_64, amd64, rhel, 8)', 'Build Docker Containers (x86_64, amd64, alpine, 3)', 'Build Docker Containers (aarch64, arm64, ubuntu, rolling)',
-        'Build Docker Containers (aarch64, arm64, ubuntu, 16.04)', 'Build Docker Containers (aarch64, arm64, debian, testing)', 'Build Docker Containers
-          (aarch64, arm64, debian, 10)', 'Build Docker Containers (aarch64, arm64, rhel, 8)', 'Build Docker Containers (aarch64, arm64, alpine, 3)']
+      contexts: [pre-commit, Create Release, 'Build Docker Containers (x86_64, amd64, ubuntu, 22.04)', 'Build Docker Containers (x86_64, amd64, alpine, 3)',
+        'Build Docker Containers (aarch64, arm64, ubuntu, 22.04)', 'Build Docker Containers (aarch64, arm64, alpine, 3)']
     enforce_admins:
     required_linear_history: true
     restrictions:
