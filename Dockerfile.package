@@ -1,8 +1,8 @@
 ARG ARCHITECTURE=x86_64
 
 # Use FPM to change the contents of /tmp/build into a deb / rpm / apk.tar.gz
-FROM --platform=linux/amd64 kong/fpm:0.6.0 as x86_64-fpm
-FROM --platform=linux/arm64 kong/fpm:0.6.0 as aarch64-fpm
+FROM --platform=linux/amd64 kong/fpm:0.8.1 as x86_64-fpm
+FROM --platform=linux/arm64 kong/fpm:0.8.1 as aarch64-fpm
 
 FROM $ARCHITECTURE-fpm as fpm
 
