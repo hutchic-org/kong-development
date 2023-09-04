@@ -21,7 +21,7 @@ jobs:
       release-git-tag: ${{ steps.release.outputs.release-git-tag }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: true
         token: ${{ secrets.GH_TOKEN }}
@@ -41,7 +41,7 @@ jobs:
         ostype: [linux-gnu, linux-musl]
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: true
         token: ${{ secrets.GH_TOKEN }}
@@ -87,7 +87,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: true
         token: ${{ secrets.GH_TOKEN }}
@@ -151,7 +151,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: true
         token: ${{ secrets.GH_TOKEN }}
@@ -220,7 +220,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: true
         token: ${{ secrets.GH_TOKEN }}

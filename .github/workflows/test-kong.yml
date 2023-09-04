@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: true
         token: ${{ secrets.GH_TOKEN }}
@@ -52,7 +52,7 @@ jobs:
         test: [unit, dbless]
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: true
         token: ${{ secrets.GH_TOKEN }}
@@ -90,7 +90,7 @@ jobs:
       TEST_SPLIT: ${{ matrix.split }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: true
         token: ${{ secrets.GH_TOKEN }}
