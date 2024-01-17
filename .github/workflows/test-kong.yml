@@ -22,7 +22,7 @@ jobs:
 
     - name: Lookup build cache
       id: cache-deps
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: /tmp/build/
         key: ${{ hashFiles('kong/kong-*.rockspec', 'Dockerfile.dev', 'Dockerfile.build', 'build.sh', 'test-kong.sh') }}
@@ -59,7 +59,7 @@ jobs:
 
     - name: Lookup build cache
       id: cache-deps
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: /tmp/build/
         key: ${{ hashFiles('kong/kong-*.rockspec', 'Dockerfile.dev', 'Dockerfile.build', 'build.sh', 'test-kong.sh') }}
@@ -97,7 +97,7 @@ jobs:
 
     - name: Lookup build cache
       id: cache-deps
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: /tmp/build/
         key: ${{ hashFiles('kong/kong-*.rockspec', 'Dockerfile.dev', 'Dockerfile.build', 'build.sh') }}
