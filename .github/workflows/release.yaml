@@ -134,7 +134,7 @@ jobs:
 
     - name: Add Release Artifact to the Github Release
       if: ${{ needs.release.outputs.published == 'true' }}
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ needs.release.outputs.release-git-tag }}
         files: package/*
