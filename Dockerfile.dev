@@ -1,4 +1,4 @@
-FROM ghcr.io/hutchic-org/kong-build-tools-base-images:deb-1.2.24
+FROM ghcr.io/hutchic-org/kong-build-tools-base-images:deb-1.2.25
 
 ENV PATH=$PATH:/kong/bin:/usr/local/openresty/bin/:/usr/local/kong/bin/:/usr/local/openresty/nginx/sbin/
 ENV LUA_PATH=/kong/?.lua;/kong/?/init.lua;/root/.luarocks/share/lua/5.1/?.lua;/root/.luarocks/share/lua/5.1/?/init.lua;/usr/local/share/lua/5.1/?.lua;/usr/local/share/lua/5.1/?/init.lua;./?.lua;/usr/local/openresty/luajit/share/luajit-2.1.0-beta3/?.lua;/usr/local/openresty/luajit/share/lua/5.1/?.lua;/usr/local/openresty/luajit/share/lua/5.1/?/init.lua
