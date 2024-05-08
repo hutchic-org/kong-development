@@ -38,7 +38,7 @@ jobs:
     strategy:
       matrix:
         architecture: [x86_64, aarch64]
-        ostype: [linux-gnu, linux-musl]
+        ostype: [linux-gnu]
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -146,8 +146,7 @@ jobs:
     strategy:
       matrix:
         architecture: [{cpu: x86_64, docker: amd64}, {cpu: aarch64, docker: arm64}]
-        os: [{os: ubuntu, version: rolling}, {os: ubuntu, version: 16.04}, {os: debian, version: testing}, {os: debian, version: 10}, {os: rhel, version: 8},
-          {os: alpine, version: 3}]
+        os: [{os: ubuntu, version: rolling}, {os: ubuntu, version: 16.04}, {os: debian, version: testing}, {os: debian, version: 10}, {os: rhel, version: 8}]
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -215,8 +214,7 @@ jobs:
     if: ${{ needs.release.outputs.published == 'true' }}
     strategy:
       matrix:
-        os: [{os: ubuntu, version: rolling}, {os: ubuntu, version: 16.04}, {os: debian, version: testing}, {os: debian, version: 10}, {os: rhel, version: 8},
-          {os: alpine, version: 3}]
+        os: [{os: ubuntu, version: rolling}, {os: ubuntu, version: 16.04}, {os: debian, version: testing}, {os: debian, version: 10}, {os: rhel, version: 8}]
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
