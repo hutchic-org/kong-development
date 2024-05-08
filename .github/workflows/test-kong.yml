@@ -15,21 +15,21 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: true
         token: ${{ secrets.GH_TOKEN }}
 
     - name: Lookup build cache
       id: cache-deps
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: /tmp/build/
         key: ${{ hashFiles('kong/kong-*.rockspec', 'Dockerfile.dev', 'Dockerfile.build', 'build.sh', 'test-kong.sh') }}
 
     - name: Log in to the Container registry
       if: steps.cache-deps.outputs.cache-hit != 'true'
-      uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc
+      uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
@@ -52,14 +52,14 @@ jobs:
         test: [unit, dbless]
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: true
         token: ${{ secrets.GH_TOKEN }}
 
     - name: Lookup build cache
       id: cache-deps
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: /tmp/build/
         key: ${{ hashFiles('kong/kong-*.rockspec', 'Dockerfile.dev', 'Dockerfile.build', 'build.sh', 'test-kong.sh') }}
@@ -90,14 +90,14 @@ jobs:
       TEST_SPLIT: ${{ matrix.split }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: true
         token: ${{ secrets.GH_TOKEN }}
 
     - name: Lookup build cache
       id: cache-deps
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: /tmp/build/
         key: ${{ hashFiles('kong/kong-*.rockspec', 'Dockerfile.dev', 'Dockerfile.build', 'build.sh') }}

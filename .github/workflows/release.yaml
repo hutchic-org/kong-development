@@ -21,14 +21,14 @@ jobs:
       release-git-tag: ${{ steps.release.outputs.release-git-tag }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: true
         token: ${{ secrets.GH_TOKEN }}
 
     - name: Release
       id: release
-      uses: ahmadnassri/action-semantic-release@v2.2.3
+      uses: ahmadnassri/action-semantic-release@v2.2.8
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -41,21 +41,21 @@ jobs:
         ostype: [linux-gnu, linux-musl]
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: true
         token: ${{ secrets.GH_TOKEN }}
 
     - name: Log in to the Container registry
-      uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc
+      uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - uses: docker/setup-qemu-action@v2
+    - uses: docker/setup-qemu-action@v3
 
-    - uses: docker/setup-buildx-action@v2
+    - uses: docker/setup-buildx-action@v3
 
     - name: Set environment variables
       run: |
@@ -87,7 +87,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: true
         token: ${{ secrets.GH_TOKEN }}
@@ -101,15 +101,15 @@ jobs:
       run: tar -xzvf build.tar.gz
 
     - name: Log in to the Container registry
-      uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc
+      uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - uses: docker/setup-qemu-action@v2
+    - uses: docker/setup-qemu-action@v3
 
-    - uses: docker/setup-buildx-action@v2
+    - uses: docker/setup-buildx-action@v3
 
     - name: Set environment variables
       run: |
@@ -134,7 +134,7 @@ jobs:
 
     - name: Add Release Artifact to the Github Release
       if: ${{ needs.release.outputs.published == 'true' }}
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ needs.release.outputs.release-git-tag }}
         files: package/*
@@ -151,7 +151,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: true
         token: ${{ secrets.GH_TOKEN }}
@@ -163,15 +163,15 @@ jobs:
         path: package/
 
     - name: Log in to the Container registry
-      uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc
+      uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - uses: docker/setup-qemu-action@v2
+    - uses: docker/setup-qemu-action@v3
 
-    - uses: docker/setup-buildx-action@v2
+    - uses: docker/setup-buildx-action@v3
 
     - name: Set environment variables
       run: |
@@ -187,7 +187,7 @@ jobs:
     - name: Docker meta
       if: ${{ needs.release.outputs.published == 'true' }}
       id: meta
-      uses: docker/metadata-action@v4
+      uses: docker/metadata-action@v5
       with:
         images: ghcr.io/hutchic-org/kong-development
         sep-tags: ' '
@@ -220,13 +220,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         submodules: true
         token: ${{ secrets.GH_TOKEN }}
 
     - name: Log in to the Container registry
-      uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc
+      uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
@@ -239,7 +239,7 @@ jobs:
     - name: Docker meta
       if: ${{ needs.release.outputs.published == 'true' }}
       id: meta
-      uses: docker/metadata-action@v4
+      uses: docker/metadata-action@v5
       with:
         images: ghcr.io/hutchic-org/kong-development
         sep-tags: ' '
