@@ -93,7 +93,7 @@ jobs:
         token: ${{ secrets.GH_TOKEN }}
 
     - name: Download the build artifact
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: ${{ matrix.architecture.cpu }}-${{ matrix.os.ostype }}
 
@@ -157,7 +157,7 @@ jobs:
         token: ${{ secrets.GH_TOKEN }}
 
     - name: Download the package
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: ${{ matrix.architecture.docker }}-${{ matrix.os.os }}-${{ matrix.os.version }}
         path: package/
