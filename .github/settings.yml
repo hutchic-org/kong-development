@@ -66,9 +66,9 @@ branches:
       strict: true
       contexts: [pre-commit, Create Release, 'Build Docker Containers (x86_64, amd64, ubuntu, rolling)', 'Build Docker Containers (x86_64, amd64, ubuntu,
           16.04)', 'Build Docker Containers (x86_64, amd64, debian, testing)', 'Build Docker Containers (x86_64, amd64, debian, 10)', 'Build Docker Containers
-          (x86_64, amd64, rhel, 8)', 'Build Docker Containers (x86_64, amd64, alpine, 3)', 'Build Docker Containers (aarch64, arm64, ubuntu, rolling)',
+          (x86_64, amd64, rhel, 8)', 'Build Docker Containers (aarch64, arm64, ubuntu, rolling)',
         'Build Docker Containers (aarch64, arm64, ubuntu, 16.04)', 'Build Docker Containers (aarch64, arm64, debian, testing)', 'Build Docker Containers
-          (aarch64, arm64, debian, 10)', 'Build Docker Containers (aarch64, arm64, rhel, 8)', 'Build Docker Containers (aarch64, arm64, alpine, 3)']
+          (aarch64, arm64, debian, 10)', 'Build Docker Containers (aarch64, arm64, rhel, 8)']
     enforce_admins:
     required_linear_history: true
     restrictions:
